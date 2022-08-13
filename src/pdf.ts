@@ -8,7 +8,11 @@ export async function html_to_pdf(html: string, quiet: boolean): Promise<Buffer>
         throw new Error("Chrome not found");
     }
 
-    const browser = await launch({ executablePath: chrome_path });
+    const is_root = process.getuid?.() === 0;
+    const browser = await launch({
+        executablePath: chrome_path,
+        args: is_root ? ["--no-sandbox"] : [],
+    });
 
     const page = await browser.newPage();
     page.setDefaultTimeout(120_000);
@@ -52,6 +56,8 @@ function find_chrome(): string {
             "/usr/bin/google-chrome-unstable",
             "/usr/bin/google-chrome-beta",
             "/usr/bin/google-chrome-dev",
+            "/usr/bin/chromium-browser",
+            "/usr/bin/chromium",
         ],
     };
 
