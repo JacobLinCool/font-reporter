@@ -46,7 +46,6 @@
             const set = new Set();
 
             (async () => {
-                await new Promise((resolve) => setTimeout(resolve, 30));
                 const data = ["DATA"];
                 const table = document.querySelector("#table");
 
@@ -76,8 +75,9 @@
                     table.appendChild(row);
                 }
 
-                table.classList.add("loaded");
+                await document.fonts.ready;
                 document.querySelector("#loading").remove();
+                table.classList.add("loaded");
                 document.querySelector("#interactive").style.display = "block";
             })();
 
