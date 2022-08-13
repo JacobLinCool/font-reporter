@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  font-reporter-lite:
+    build:
+      context: .
+      target: font-reporter-lite
+    image: jacoblincool/font-reporter:lite
+  font-reporter:
+    build:
+      context: .
+      target: font-reporter
+    image: jacoblincool/font-reporter:latest
