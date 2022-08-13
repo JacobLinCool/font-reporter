@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { launch } from "puppeteer-core";
 
-export async function html_to_pdf(html: string): Promise<Buffer> {
+export async function html_to_pdf(html: string, quiet: boolean): Promise<Buffer> {
     const chrome_path = find_chrome();
 
     if (!chrome_path) {
@@ -11,7 +11,12 @@ export async function html_to_pdf(html: string): Promise<Buffer> {
     const browser = await launch({ executablePath: chrome_path });
 
     const page = await browser.newPage();
-    await page.setContent(html, { timeout: 120_000 });
+    page.setDefaultTimeout(120_000);
+    quiet || console.log("loading content ...");
+    await page.setContent(html);
+    quiet || console.log("parsing data ...");
+    await page.waitForSelector(".loaded");
+    quiet || console.log("generating pdf ...");
     const buffer = await page.pdf({
         format: "A4",
         printBackground: true,

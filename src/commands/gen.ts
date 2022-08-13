@@ -59,6 +59,7 @@ export default async function gen(files: string[], opt: OptionValues): Promise<v
         } else if (opt.format === "pdf") {
             const buffer = await html_to_pdf(
                 generate_html(font, chars, opt.columns, opt.size).replace(/loading="lazy"/g, ""),
+                opt.quiet,
             );
             fs.writeFileSync(out, buffer);
         } else {
