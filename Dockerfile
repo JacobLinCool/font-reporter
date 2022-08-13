@@ -12,6 +12,7 @@ RUN cd /app && npm link
 
 WORKDIR /data
 ENTRYPOINT [ "font-reporter" ]
+CMD [ "-f", "html" ]
 
 FROM jacoblincool/playwright:chromium-light as font-reporter
 
@@ -20,3 +21,4 @@ RUN cd /app && npm link
 
 WORKDIR /data
 ENTRYPOINT [ "font-reporter" ]
+CMD [ "-f", "pdf" ]
