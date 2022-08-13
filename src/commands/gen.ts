@@ -4,6 +4,7 @@ import fontkit, { Font } from "fontkit";
 import { OptionValues } from "commander";
 import { Char } from "../types";
 import { html_to_pdf } from "../pdf";
+import html_template from "../template.html";
 
 export default async function gen(files: string[], opt: OptionValues): Promise<void> {
     const cwd = process.cwd();
@@ -55,7 +56,7 @@ export default async function gen(files: string[], opt: OptionValues): Promise<v
         } else if (opt.format === "txt") {
             fs.writeFileSync(out, generate_text(font, chars, opt.columns));
         } else if (opt.format === "html") {
-            fs.writeFileSync(out, generate_html(font, chars, opt.columns, opt.size));
+            fs.writeFileSync(out, generate_html(font, chars, opt.columns, opt.size, true));
         } else if (opt.format === "pdf") {
             const buffer = await html_to_pdf(
                 generate_html(font, chars, opt.columns, opt.size).replace(/loading="lazy"/g, ""),
@@ -127,65 +128,25 @@ function generate_text(font: Font, chars: Char[], col = 16) {
     return out.join("\n\n");
 }
 
-function generate_html(font: Font, chars: Char[], col = 16, size = 2) {
-    const rows: Char[][] = [];
-    let row: Char[] = [];
-    for (let i = 0; i < chars.length; i++) {
-        row.push(chars[i]);
-        if (i % col === col - 1) {
-            rows.push(row);
-            row = [];
-        }
-    }
-    if (row.length) {
-        rows.push(row);
-    }
-
-    return `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>${font.fullName}</title>
-    <meta name="description" content="${font.version} | ${font.copyright}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        img { height: ${size}rem; width: ${size}rem }
-    </style>
-</head>
-<body>
-    <h1>${font.fullName}</h1>
-    <p> <b>${font.version}</b> ${font.copyright}</p>
-    <p> <b>${chars.length}</b> Unicode Characters </p>
-    <table>
-        <tbody>
-${rows
-    .map(
-        (row) =>
-            `<tr>${row
-                .map(
-                    (c) =>
-                        `<td><img src="${svg_url(char_to_svg(c))}" alt="${
-                            c.char
-                        }" loading="lazy" /><p>[${c.char}]<br />${c.code}</p></td>`,
-                )
-                .join("")}</tr>`,
-    )
-    .join("\n")}
-        </tbody>
-    </table>
-</body>
-`;
-}
-
-function char_to_svg(char: Char): string {
-    const { minX, minY, maxX, maxY } = char.bbox;
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${maxX - minX} ${
-        maxY - minY
-    }" style="transform: scaleX(-1) rotate(180deg)"><path d="${char.path}" /></svg>`;
-}
-
-function svg_url(svg: string) {
-    return (
-        "data:image/svg+xml," + encodeURIComponent(svg).replace(/'/g, "%27").replace(/"/g, "%22")
-    );
+function generate_html(font: Font, chars: Char[], col = 16, size = 2, interactive = false) {
+    return html_template
+        .replace(/\$name/g, font.fullName)
+        .replace(/\$version/g, font.version.toString())
+        .replace(/\$copyright/g, font.copyright.replace(/\s+/g, " "))
+        .replace(/\$chars/, chars.length.toString())
+        .replace(`["DATA"]`, JSON.stringify(chars))
+        .replace(
+            "$css",
+            `img { width: ${size}rem; height: ${size}rem }
+             input { border: 1px solid }
+             input:focus { outline: none }
+             #interactive { opacity: 0 }
+             #table { width: 100%; display: grid; grid-template-columns: repeat(${col}, 1fr); grid-gap: 0.5rem }
+             #table > div { break-inside: avoid }`,
+        )
+        .replace(/\$col/g, col.toString())
+        .replace(
+            "<!-- Interactive -->",
+            interactive ? `<div id="interactive"><b>Test: </b><input /></div>` : "",
+        );
 }

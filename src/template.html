@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>$name</title>
+        <meta name="description" content="$version | $copyright" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style id="css"></style>
+        <script>
+            const style = document.getElementById("css");
+            style.innerHTML = `$css`;
+        </script>
+    </head>
+    <body>
+        <h1>$name</h1>
+        <p><b>$version</b> <span>$copyright</span></p>
+        <p><b>$chars</b> Unicode Characters</p>
+
+        <!-- Interactive -->
+        <br />
+
+        <div id="table">Loading ...</div>
+        <script>
+            const input = document.querySelector("input");
+            if (input) {
+                input.addEventListener("keyup", check_safe);
+            }
+
+            const set = new Set();
+
+            (async () => {
+                await new Promise((resolve) => setTimeout(resolve, 30));
+                const data = ["DATA"];
+                const table = document.querySelector("#table");
+
+                let html = "";
+                for (let i = 0; i < data.length; i++) {
+                    html += `<div><img src="${svg_url(char_to_svg(data[i]))}" alt="${
+                        data[i].char
+                    }" loading="lazy" /><p>[${data[i].char}]<br />u${data[i].code
+                        .toString(16)
+                        .toUpperCase()
+                        .padStart(4, "0")}</p></div>`;
+                    set.add(data[i].char);
+                }
+
+                table.innerHTML = html;
+                table.classList.add("loaded");
+                document.querySelector("#interactive").style.opacity = "1";
+            })();
+
+            function char_to_svg(char) {
+                const { minX, minY, maxX, maxY } = char.bbox;
+                return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${
+                    maxX - minX
+                } ${maxY - minY}" style="transform: scaleX(-1) rotate(180deg)"><path d="${
+                    char.path
+                }" /></svg>`;
+            }
+
+            function svg_url(svg) {
+                return (
+                    "data:image/svg+xml," +
+                    encodeURIComponent(svg).replace(/'/g, "%27").replace(/"/g, "%22")
+                );
+            }
+
+            function check_safe() {
+                const val = [...input.value.replace(/\s/g, "")];
+                const safe = val.every((char) => set.has(char));
+                input.style.borderColor = val.length === 0 ? "black" : safe ? "green" : "red";
+                input.style.backgroundColor =
+                    val.length === 0 ? "white" : safe ? "lightgreen" : "pink";
+            }
+        </script>
+    </body>
+</html>
