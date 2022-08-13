@@ -7,7 +7,7 @@ Output formats: `json`, `text`, `html`, `pdf`
 
 ## Example
 
-See [example/README.md](example/README.md)
+See [example](example)
 
 ## Install
 
