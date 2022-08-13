@@ -5,6 +5,16 @@
         <title>$name</title>
         <meta name="description" content="$version | $copyright" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style>
+            @font-face {
+                font-family: "$name";
+                src: url("$datauri");
+            }
+            .char,
+            #text {
+                font-family: "$name";
+            }
+        </style>
         <style id="css"></style>
         <script>
             const style = document.getElementById("css");
@@ -16,14 +26,21 @@
         <p><b>$version</b> <span>$copyright</span></p>
         <p><b>$chars</b> Unicode Characters</p>
 
-        <!-- Interactive -->
+        <div id="interactive">
+            <label>
+                <b>Preview</b> <span id="status"></span>
+                <textarea id="text" rows="3" placeholder="write something here..."></textarea>
+            </label>
+        </div>
         <br />
 
-        <div id="table">Loading ...</div>
+        <table id="table">
+            <b id="loading">Loading ...</b>
+        </table>
         <script>
-            const input = document.querySelector("input");
+            const input = document.querySelector("#text");
             if (input) {
-                input.addEventListener("keyup", check_safe);
+                input.addEventListener("keyup", update_preview);
             }
 
             const set = new Set();
@@ -34,43 +51,47 @@
                 const table = document.querySelector("#table");
 
                 let html = "";
+                let count = 0;
+                let row = document.createElement("tr");
                 for (let i = 0; i < data.length; i++) {
-                    html += `<div><img src="${svg_url(char_to_svg(data[i]))}" alt="${
+                    const cell = document.createElement("td");
+
+                    cell.innerHTML = `<p class="char">${data[i].char}</p><p class="code">[${
                         data[i].char
-                    }" loading="lazy" /><p>[${data[i].char}]<br />u${data[i].code
-                        .toString(16)
-                        .toUpperCase()
-                        .padStart(4, "0")}</p></div>`;
+                    }]<br />u${data[i].code.toString(16).toUpperCase().padStart(4, "0")}</p>`;
                     set.add(data[i].char);
+
+                    row.appendChild(cell);
+
+                    if (count === $col) {
+                        table.appendChild(row);
+                        row = document.createElement("tr");
+                        count = 0;
+                    } else {
+                        count++;
+                    }
                 }
 
-                table.innerHTML = html;
+                if (count > 0) {
+                    table.appendChild(row);
+                }
+
                 table.classList.add("loaded");
-                document.querySelector("#interactive").style.opacity = "1";
+                document.querySelector("#loading").remove();
+                document.querySelector("#interactive").style.display = "block";
             })();
 
-            function char_to_svg(char) {
-                const { minX, minY, maxX, maxY } = char.bbox;
-                return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${
-                    maxX - minX
-                } ${maxY - minY}" style="transform: scaleX(-1) rotate(180deg)"><path d="${
-                    char.path
-                }" /></svg>`;
-            }
-
-            function svg_url(svg) {
-                return (
-                    "data:image/svg+xml," +
-                    encodeURIComponent(svg).replace(/'/g, "%27").replace(/"/g, "%22")
-                );
-            }
-
-            function check_safe() {
+            function update_preview() {
                 const val = [...input.value.replace(/\s/g, "")];
                 const safe = val.every((char) => set.has(char));
                 input.style.borderColor = val.length === 0 ? "black" : safe ? "green" : "red";
                 input.style.backgroundColor =
-                    val.length === 0 ? "white" : safe ? "lightgreen" : "pink";
+                    val.length === 0 ? "white" : safe ? "#90ee9080" : "pink";
+                document.querySelector("#status").innerHTML = safe
+                    ? "All Characters used are available"
+                    : `Not available characters: ${val
+                          .filter((char) => !set.has(char))
+                          .join(", ")}`;
             }
         </script>
     </body>

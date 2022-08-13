@@ -35,8 +35,6 @@ export default async function gen(files: string[], opt: OptionValues): Promise<v
     const checked = new Set<string>();
     for (const file of files) {
         const name = path.basename(file).split(".").slice(0, -1).join(".");
-        const font = fontkit.openSync(file);
-        const chars = parse(font);
 
         if (checked.has(name)) {
             continue;
@@ -47,6 +45,12 @@ export default async function gen(files: string[], opt: OptionValues): Promise<v
             opt.format = "txt";
         }
 
+        const font = fontkit.openSync(file);
+        const buffer = fs.readFileSync(file);
+        const format = path.extname(file).slice(1);
+        const datauri = `data:font/${format};base64,${buffer.toString("base64")}`;
+        const chars = parse(font);
+
         const out = path.resolve(
             opt.output.replace("<name>", name).replace("<format>", opt.format),
         );
@@ -56,10 +60,16 @@ export default async function gen(files: string[], opt: OptionValues): Promise<v
         } else if (opt.format === "txt") {
             fs.writeFileSync(out, generate_text(font, chars, opt.columns));
         } else if (opt.format === "html") {
-            fs.writeFileSync(out, generate_html(font, chars, opt.columns, opt.size, true));
+            fs.writeFileSync(
+                out,
+                generate_html(font, chars, format, datauri, opt.columns, opt.size, true),
+            );
         } else if (opt.format === "pdf") {
             const buffer = await html_to_pdf(
-                generate_html(font, chars, opt.columns, opt.size).replace(/loading="lazy"/g, ""),
+                generate_html(font, chars, format, datauri, opt.columns, opt.size).replace(
+                    /loading="lazy"/g,
+                    "",
+                ),
                 opt.quiet,
             );
             fs.writeFileSync(out, buffer);
@@ -128,25 +138,33 @@ function generate_text(font: Font, chars: Char[], col = 16) {
     return out.join("\n\n");
 }
 
-function generate_html(font: Font, chars: Char[], col = 16, size = 2, interactive = false) {
+function generate_html(
+    font: Font,
+    chars: Char[],
+    format: string,
+    datauri: string,
+    col: number,
+    size: number,
+    interactive = false,
+) {
     return html_template
         .replace(/\$name/g, font.fullName)
         .replace(/\$version/g, font.version.toString())
         .replace(/\$copyright/g, font.copyright.replace(/\s+/g, " "))
         .replace(/\$chars/, chars.length.toString())
+        .replace(/\$datauri/, datauri)
+        .replace(/\$format/, format)
+        .replace(/\$col/g, col.toString())
         .replace(`["DATA"]`, JSON.stringify(chars))
         .replace(
             "$css",
-            `img { width: ${size}rem; height: ${size}rem }
-             input { border: 1px solid }
-             input:focus { outline: none }
-             #interactive { opacity: 0 }
-             #table { width: 100%; display: grid; grid-template-columns: repeat(${col}, 1fr); grid-gap: 0.5rem }
-             #table > div { break-inside: avoid }`,
-        )
-        .replace(/\$col/g, col.toString())
-        .replace(
-            "<!-- Interactive -->",
-            interactive ? `<div id="interactive"><b>Test: </b><input /></div>` : "",
+            `body { font-family: Arial, -apple-system, sans-serif }
+             .char { font-size: ${size}rem }
+             .code { font-family: monospace, sans-serif }
+             #text { width: 80%; display: block; margin-top: 0.5rem; padding: 0.5rem; border: 1px solid; border-radius: 0.5rem; font-size: 1.5rem }
+             #text:focus { outline: none }
+             #interactive { display: none ${interactive ? "" : "!important"} }
+             #table { width: 100%; table-layout: fixed }
+             #table * { break-inside: avoid }`,
         );
 }

@@ -22,7 +22,7 @@ program
     .option("-f, --format <format>", "output format (json, text, html, pdf)", "pdf")
     .option("-p, --pretty", "pretty print json", false)
     .option("-c, --columns <columns>", "number of columns in the output", "10")
-    .option("-s, --size <size>", "size of the output", "1")
+    .option("-s, --size <size>", "size of the output (rem)", "2")
     .option("-F, --force", "overwrite output file if it exists", false)
     .option("-q, --quiet", "don't print anything", false)
     .action(gen)
