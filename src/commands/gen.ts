@@ -55,6 +55,11 @@ export default async function gen(files: string[], opt: OptionValues): Promise<v
             opt.output.replace("<name>", name).replace("<format>", opt.format),
         );
 
+        if (fs.existsSync(out) && !opt.force) {
+            console.error(`File ${out} already exists`);
+            process.exit(1);
+        }
+
         if (!fs.existsSync(path.dirname(out))) {
             fs.mkdirSync(path.dirname(out), { recursive: true });
         }
