@@ -3,10 +3,40 @@ import fs from "node:fs";
 import path from "node:path";
 import { program } from "commander";
 import gen from "./commands/gen";
+import check from "./commands/check";
+import { list_files } from "./utils";
 
 const package_info = JSON.parse(
     fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8"),
 );
+
+program.enablePositionalOptions(true);
+
+program
+    .command("check")
+    .description("Check if all characters are available in the font")
+    .option("-d, --dir <dir...>", "The directories to check", ["src"])
+    .option("-e, --ext <ext...>", "The extensions to filter by", [
+        "html",
+        "htm",
+        "md",
+        "js",
+        "ts",
+        "jsx",
+        "tsx",
+        "css",
+        "vue",
+        "svelte",
+    ])
+    .option(
+        "-f, --font <font...>",
+        "The font files",
+        list_files(process.cwd(), ["ttf", "otf", "woff", "woff2"]).map((f) =>
+            f.replace(process.cwd(), "."),
+        ),
+    )
+    .option("-q, --quiet", "Don't print anything", false)
+    .action(check);
 
 program
     .version(`${package_info.name} ${package_info.version}`)
