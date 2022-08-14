@@ -1,9 +1,9 @@
 # font-reporter
 
-Generate report of a font.
+Generate report of a font. Check if all characters are supported by a collection of fonts.
 
-Input formats: `ttf`, `otf`, `woff`, `woff2`
-Output formats: `json`, `text`, `html`, `pdf`
+- Input formats: `ttf`, `otf`, `woff`, `woff2`
+- Output formats: `json`, `text`, `html`, `pdf`
 
 ## Example
 
@@ -19,6 +19,10 @@ npm i -g font-reporter
 
 ```sh
 font-reporter --help
+```
+
+```sh
+font-reporter check --help
 ```
 
 ## Docker
