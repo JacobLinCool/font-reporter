@@ -55,6 +55,10 @@ export default async function gen(files: string[], opt: OptionValues): Promise<v
             opt.output.replace("<name>", name).replace("<format>", opt.format),
         );
 
+        if (!fs.existsSync(path.dirname(out))) {
+            fs.mkdirSync(path.dirname(out), { recursive: true });
+        }
+
         if (opt.format === "json") {
             fs.writeFileSync(out, JSON.stringify(chars, null, opt.pretty ? 4 : 0));
         } else if (opt.format === "txt") {
