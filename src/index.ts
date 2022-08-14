@@ -15,7 +15,7 @@ program.enablePositionalOptions(true);
 program
     .command("check")
     .description("Check if all characters are available in the font")
-    .option("-d, --dir <dir...>", "The directories to check", ["src"])
+    .option("-d, --dir <dir...>", "The directories to check", [process.cwd()])
     .option("-e, --ext <ext...>", "The extensions to filter by", [
         "html",
         "htm",

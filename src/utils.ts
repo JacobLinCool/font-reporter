@@ -12,6 +12,10 @@ export function list_files(dir: string, ext: string[] = []): string[] {
     const result = [];
 
     for (const file of files) {
+        if (file === "node_modules") {
+            continue;
+        }
+
         const filepath = path.resolve(dir, file);
         const stat = fs.statSync(filepath);
 
