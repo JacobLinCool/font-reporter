@@ -1,6 +1,6 @@
 {
     "name": "font-reporter",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "description": "Generate report of a font.",
     "keywords": [
         "font",
